@@ -45,6 +45,10 @@ def handler(event, context):
     # size = float(simplifiedmeta.headers['Content-Length'])
     # M_size = round(size / 1024.0 / 1024.0, 2)
 
+    exist = oss_client.object_exists(object_key)
+    if not exist:
+        raise Exception("object {} is not exist".format(object_key))
+
     input_path = oss_client.sign_url('GET', object_key, 6 * 3600)
     # m3u8 特殊处理
     rid = context.request_id
