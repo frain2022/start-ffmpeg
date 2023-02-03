@@ -19,7 +19,17 @@ def get_fileNameExt(filename):
 
 def handler(event, context):
     LOGGER.info(event)
-    evt = json.loads(event)
+    # evt = json.loads(event)
+
+    try:
+        request_body_size = int(event.get('CONTENT_LENGTH', 0))
+    except (ValueError):
+        request_body_size = 0
+    request_body = event['wsgi.input'].read(request_body_size)
+
+    evt = json.loads(request_body)
+    context = event['fc.context']
+
     oss_bucket_name = evt["bucket"]
     object_key = evt["object"]
     output_dir = evt["output_dir"]
@@ -34,10 +44,6 @@ def handler(event, context):
     # simplifiedmeta = oss_client.get_object_meta(object_key)
     # size = float(simplifiedmeta.headers['Content-Length'])
     # M_size = round(size / 1024.0 / 1024.0, 2)
-
-    exist = oss_client.object_exists(object_key)
-    if not exist:
-        raise Exception("object {} is not exist".format(object_key))
 
     input_path = oss_client.sign_url('GET', object_key, 6 * 3600)
     # m3u8 特殊处理
